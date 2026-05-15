@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="ms-windows-store://pdp/?productid=9P2KPFF3G9L9&cid=PCCongratsBnr"><img src="https://img.shields.io/badge/Microsoft%20Store-Download-blue?logo=microsoft&logoColor=white" alt="Microsoft Store" /></a>
+  <a href="https://apps.microsoft.com/store/detail/9P2KPFF3G9L9?cid=DevShareMCLPCS"><img src="https://img.shields.io/badge/Microsoft%20Store-Download-blue?logo=microsoft&logoColor=white" alt="Microsoft Store" /></a>
   <img src="https://img.shields.io/badge/version-1.0.20-f4a125?style=flat" alt="Version" />
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-lightgrey" alt="Platform" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License" />
@@ -253,7 +253,7 @@ KoBar follows strict Electron security practices:
 
 | Platform | Format | Store |
 |----------|--------|-------|
-| Windows | AppX | [Microsoft Store](ms-windows-store://pdp/?productid=9P2KPFF3G9L9&cid=PCCongratsBnr) |
+| Windows | AppX | [Microsoft Store](https://apps.microsoft.com/store/detail/9P2KPFF3G9L9?cid=DevShareMCLPCS) |
 | macOS | DMG / ZIP | Direct Download |
 
 ---
