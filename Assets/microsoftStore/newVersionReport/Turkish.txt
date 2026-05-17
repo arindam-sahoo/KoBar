@@ -2,3 +2,10 @@
 
 - Bilgisayar açıldığında KoBar'ın otomatik açılmasını engelleyen hata giderildi.
 - Ayarlar da özellikleri akordion menüden kutu formuna çevirebileceğiniz bir arayüz eklendi.
+- Dil seçeneklerindeki "Hakkında" alanları güncellendi.
+- KoBar ilk kurulduğunda varsayılan olarak açılacak araçlar optimize edildi.
+- Arayüz yerleşimi ve aralıkların varsayılan değerleri güncellendi.
+- Mini mod ikonunun (göz simgesi) konumu en alta sabitlendi ve modlar arası geçişteki hizalama sorunları giderildi.
+- KoBar taşınırken araç ipuçlarının (tooltip) otomatik olarak gizlenmesi sağlandı ve taşınma sonrası konumları düzeltildi.
+- İlk açılıştaki "Welcome to KoBar!" karşılama notunun içeriği zenginleştirildi.
+- Standalone (.exe) sürümleri için çok dilli güncelleme onay mekanizmasına sahip otomatik güncelleme altyapısı kuruldu.

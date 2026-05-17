@@ -2,3 +2,10 @@
 
 - Correction d'un bug qui empêchait KoBar de s'ouvrir automatiquement au démarrage de l'ordinateur.
 - Ajout d'une nouvelle interface dans les Paramètres pour transformer les menus en accordéon en format boîte.
+- Mise à jour des champs "À propos" dans toutes les options de langue.
+- Optimisation des outils actifs par défaut lors de la première installation de KoBar.
+- Mise à jour des valeurs par défaut pour la disposition de l'interface utilisateur et l'espacement.
+- Fixation de la position de l'icône du mode mini (symbole de l'œil) en bas et résolution des problèmes d'alignement lors des transitions de mode.
+- Activation du masquage automatique des info-bulles (tooltips) pendant le déplacement de KoBar, et correction de leur positionnement après le déplacement.
+- Enrichissement du contenu de la note d'accueil par défaut "Welcome to KoBar!".
+- Implémentation de l'infrastructure de mise à jour automatique avec des boîtes de dialogue de confirmation multilingues pour les versions autonomes (.exe).

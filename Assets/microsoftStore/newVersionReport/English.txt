@@ -2,3 +2,10 @@
 
 - Fixed a bug that prevented KoBar from automatically opening on system startup.
 - Added a new interface option in Settings to toggle features from accordion menus to a box layout.
+- Updated "About" fields in all language options.
+- Optimized default active tools when KoBar is installed for the first time.
+- Updated default values for UI layout and spacing.
+- Fixed mini mode icon (eye symbol) position to the bottom and resolved alignment issues during mode transitions.
+- Enabled auto-hiding of tooltips while KoBar is being dragged/moved, and fixed tooltip positioning after dragging.
+- Enriched the content of the default "Welcome to KoBar!" welcome note.
+- Implemented auto-update infrastructure with multilingual update confirmation dialogs for standalone (.exe) builds.

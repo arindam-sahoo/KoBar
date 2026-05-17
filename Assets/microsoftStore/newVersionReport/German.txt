@@ -2,3 +2,10 @@
 
 - Ein Fehler wurde behoben, der verhinderte, dass KoBar beim Computerstart automatisch geöffnet wurde.
 - In den Einstellungen wurde eine neue Oberfläche hinzugefügt, mit der Funktionen von Akkordeon-Menüs in eine Box-Form umgewandelt werden können.
+- Die "Über"-Felder in allen Sprachoptionen wurden aktualisiert.
+- Die standardmäßig aktiven Tools bei der Erstinstallation von KoBar wurden optimiert.
+- Die Standardwerte für das UI-Layout und die Abstände wurden aktualisiert.
+- Die Position des Mini-Modus-Symbols (Auge-Symbol) wurde nach unten verschoben und Ausrichtungsprobleme bei Modusübergängen wurden behoben.
+- Automatisches Ausblenden von Tooltips beim Ziehen/Verschieben von KoBar wurde aktiviert und die Tooltip-Positionierung nach dem Verschieben wurde korrigiert.
+- Der Inhalt der Standard-Willkommensnotiz "Welcome to KoBar!" wurde bereichert.
+- Die Auto-Update-Infrastruktur mit mehrsprachigen Update-Bestätigungsdialogen für eigenständige (.exe) Builds wurde implementiert.
