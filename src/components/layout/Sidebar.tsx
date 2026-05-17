@@ -129,6 +129,7 @@ const Sidebar: React.FC = () => {
         e.preventDefault();
         setIsSidebarDragging(true);
         setIsResizingGlobal(true);
+        useAppStore.getState().setIsDraggingGlobal(true);
         
         // Fetch up-to-date screen topology to calculate drag positions accurately across multiple monitors.
         if (window.api?.getDisplaysInfo) {
@@ -240,6 +241,7 @@ const Sidebar: React.FC = () => {
             if (isSidebarDragging) {
                 setIsSidebarDragging(false);
                 setIsResizingGlobal(false);
+                useAppStore.getState().setIsDraggingGlobal(false);
 
                 const pos = { x: sidebarDragRef.current.lastX, y: sidebarDragRef.current.lastY };
                 // Synchronize global store with the final drop position
@@ -383,7 +385,7 @@ const Sidebar: React.FC = () => {
             {/* 1. Main Floating Sidebar (Fixed Size, inner scrollable) */}
             <div 
                 ref={sidebarContainerRef}
-                className={`flex flex-col items-center py-4 w-full h-fit overflow-hidden pointer-events-auto transition-all duration-500
+                className={`flex flex-col items-center pt-4 pb-2 w-full h-fit overflow-hidden pointer-events-auto transition-all duration-500
                     ${isMac && edgePosition === 'left' ? 'pt-8' : ''}
                     ${design === 'style2' 
                         ? ((isMac ? 'backdrop-blur-md' : 'backdrop-blur-2xl') + ' rounded-[2.5rem] shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-white/10') 
@@ -708,7 +710,7 @@ const Sidebar: React.FC = () => {
                 <div className="w-10 h-px bg-white/5 no-drag-region shrink-0 my-2" />
 
                 {/* 1c. Bottom Static Utilities (Always Bottom) */}
-                <div className="flex flex-col items-center gap-4 no-drag-region shrink-0 px-2 pb-2">
+                <div className="flex flex-col items-center gap-4 no-drag-region shrink-0 px-2 pb-0">
                     <div style={{ zoom: iconScale }} className="transition-all">
                         <TooltipButton
                             label={t('miniMode')}

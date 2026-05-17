@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -41,7 +41,7 @@ const TooltipButton: React.FC<TooltipButtonProps> = ({
     onDrop,
     buttonRef,
 }) => {
-    const { edgePosition, showTooltips } = useAppStore();
+    const { edgePosition, showTooltips, isDraggingGlobal } = useAppStore();
     const internalRef = useRef<HTMLElement>(null);
     const ref = (buttonRef as React.RefObject<HTMLElement>) ?? internalRef;
 
@@ -51,21 +51,25 @@ const TooltipButton: React.FC<TooltipButtonProps> = ({
     const side = tooltipSide === 'auto' ? edgePosition : tooltipSide;
 
     const handleMouseEnter = useCallback(() => {
-        if (ref.current) {
-            const rect = ref.current.getBoundingClientRect();
-            const x = side === 'left' ? rect.left - 8 : rect.right + 8;
-            const y = rect.top + rect.height / 2;
-            setPos({ x, y });
-            setVisible(true);
-        }
-    }, [ref, side]);
+        setVisible(true);
+    }, []);
 
     const handleMouseLeave = useCallback((e: React.MouseEvent) => {
         setVisible(false);
         onMouseLeave?.(e);
     }, [onMouseLeave]);
 
-    const tooltip = showTooltips && visible && label ? createPortal(
+    // Recalculate coordinates reactively when dragging state changes or hover starts
+    useEffect(() => {
+        if (visible && !isDraggingGlobal && ref.current) {
+            const rect = ref.current.getBoundingClientRect();
+            const x = side === 'left' ? rect.left - 8 : rect.right + 8;
+            const y = rect.top + rect.height / 2;
+            setPos({ x, y });
+        }
+    }, [visible, isDraggingGlobal, side, ref]);
+
+    const tooltip = showTooltips && !isDraggingGlobal && visible && label ? createPortal(
         <div
             className="fixed pointer-events-none whitespace-nowrap border rounded-lg py-1.5 px-3 shadow-lg text-xs font-semibold text-primary"
             style={{

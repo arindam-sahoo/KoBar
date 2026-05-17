@@ -196,6 +196,9 @@ interface AppState {
     iconScale: number;
     setIconScale: (val: number) => void;
 
+    isDraggingGlobal: boolean;
+    setIsDraggingGlobal: (val: boolean) => void;
+
     // Teleport
     teleportShortcut: string;
     setTeleportShortcut: (val: string) => void;
@@ -513,6 +516,9 @@ export const useAppStore = create<AppState>()(
             iconScale: 0.8,
             setIconScale: (val) => set({ iconScale: val }),
 
+            isDraggingGlobal: false,
+            setIsDraggingGlobal: (val) => set({ isDraggingGlobal: val }),
+
             teleportShortcut: 'CommandOrControl+Shift+K',
             setTeleportShortcut: (val) => {
                 set({ teleportShortcut: val });
@@ -753,8 +759,10 @@ export const useAppStore = create<AppState>()(
                     if (!isMini) {
                         // Position the sidebar's bottom handle precisely where the eye was located
                         // We subtract lastSidebarHeight so the bottom of the sidebar rests at the eye's Y pos
-                        // The eye button itself has a height of ~48px (12rem), so we adjust by +24px so the center of the eye matches
-                        updates.sidebarPosition = { x: pos.x - (state.sidebarWidth / 2), y: pos.y - state.lastSidebarHeight + 24 };
+                        // The eye button itself has a height of 48px, so its half-height is 24 * iconScale.
+                        // We add the bottom padding (8px from pb-2) to get the exact distance from the center of the button to the bottom of the sidebar.
+                        const centerToBottom = (24 * state.iconScale) + 8;
+                        updates.sidebarPosition = { x: pos.x - (state.sidebarWidth / 2), y: pos.y - state.lastSidebarHeight + centerToBottom };
                     }
                 } else if (!pos && isMini) {
                     updates.miniModePosition = null;

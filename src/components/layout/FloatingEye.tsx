@@ -57,6 +57,7 @@ const FloatingEye: React.FC = () => {
         e.preventDefault(); // Prevent text selection during drag
         setIsDragging(true);
         setIsResizingGlobal(true); // Prevent transparent click-through issues globally
+        useAppStore.getState().setIsDraggingGlobal(true);
         dragInitRef.current = {
             dragged: false,
             offsetX: e.clientX - posRef.current.x,
@@ -91,6 +92,7 @@ const FloatingEye: React.FC = () => {
             if (isDragging) {
                 setIsDragging(false);
                 setIsResizingGlobal(false);
+                useAppStore.getState().setIsDraggingGlobal(false);
                 // Re-sync React state once drag completes
                 setPos({ x: posRef.current.x, y: posRef.current.y });
                 // Persist the final position to global store so Sidebar knows where the Eye was
