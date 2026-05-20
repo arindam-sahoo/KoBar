@@ -214,20 +214,17 @@ const Sidebar: React.FC = () => {
                 let primaryX = 0;
                 let primaryY = 0;
                 let primaryW = 1920;
-                let primaryH = 1080;
                 let allDisplays = [] as any[];
 
                 if (localDisplaysRef.current) {
                     primaryX = localDisplaysRef.current.primaryDisplay.workArea.x;
                     primaryY = localDisplaysRef.current.primaryDisplay.workArea.y;
                     primaryW = localDisplaysRef.current.primaryDisplay.workArea.width;
-                    primaryH = localDisplaysRef.current.primaryDisplay.workArea.height;
                     allDisplays = localDisplaysRef.current.allDisplays;
                 } else {
                     primaryX = screenBounds?.x ?? 0;
                     primaryY = screenBounds?.y ?? 0;
                     primaryW = screenBounds?.width ?? window.innerWidth;
-                    primaryH = screenBounds?.height ?? window.innerHeight;
                 }
 
                 // Compute exact absolute coordinates in OS space
@@ -308,20 +305,17 @@ const Sidebar: React.FC = () => {
                     let primaryX = 0;
                     let primaryY = 0;
                     let primaryW = 1920;
-                    let primaryH = 1080;
                     let allDisplays = [] as any[];
 
                     if (localDisplaysRef.current) {
                         primaryX = localDisplaysRef.current.primaryDisplay.workArea.x;
                         primaryY = localDisplaysRef.current.primaryDisplay.workArea.y;
                         primaryW = localDisplaysRef.current.primaryDisplay.workArea.width;
-                        primaryH = localDisplaysRef.current.primaryDisplay.workArea.height;
                         allDisplays = localDisplaysRef.current.allDisplays;
                     } else {
                         primaryX = screenBounds?.x ?? 0;
                         primaryY = screenBounds?.y ?? 0;
                         primaryW = screenBounds?.width ?? window.innerWidth;
-                        primaryH = screenBounds?.height ?? window.innerHeight;
                     }
 
                     const physicalOriginX = primaryX + (primaryW / 2) - 3000;
