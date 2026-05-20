@@ -846,7 +846,10 @@ const Sidebar: React.FC = () => {
                                                 setIsKoPlayerOpen(!isKoPlayerOpen);
                                             }}
                                         >
-                                            <span className="material-symbols-outlined text-[24px]">music_note</span>
+                                            <div className="relative inline-flex items-center justify-center text-[24px]" style={{ width: '1em', height: '1em' }}>
+                                                <span className="material-symbols-outlined absolute left-1/2 top-1/2" style={{ fontSize: '0.85em', transform: 'translate(-60%, -60%)', opacity: 0.6 }}>movie</span>
+                                                <span className="material-symbols-outlined absolute left-1/2 top-1/2" style={{ fontSize: '0.9em', transform: 'translate(-40%, -40%)' }}>music_note</span>
+                                            </div>
                                         </TooltipButton>
                                     </div>
                                 ) : null;

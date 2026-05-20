@@ -4,11 +4,6 @@ import React, { useEffect, useRef, useState } from 'react';
 function getPlayableUrl(rawUrl: string): string {
     if (!rawUrl) return '';
 
-    // Local Windows file path → file:// URL
-    if (/^[A-Za-z]:[/\\]/.test(rawUrl)) {
-        return 'file:///' + rawUrl.replace(/\\/g, '/');
-    }
-
     // YouTube watch → embed (no ads, no nav UI, autoplay)
     const ytMatch = rawUrl.match(
         /(?:youtube\.com\/watch[?&]v=|youtu\.be\/)([\w-]+)/
@@ -66,6 +61,23 @@ const PipPlayer: React.FC = () => {
         };
     }, [finalUrl]);
 
+    useEffect(() => {
+        const handleMouseLeave = (e: MouseEvent) => {
+            // e.relatedTarget is null when leaving the actual browser window
+            if (e.relatedTarget === null) {
+                setIsHovered(false);
+            }
+        };
+        const handleMouseEnter = () => setIsHovered(true);
+
+        document.addEventListener('mouseleave', handleMouseLeave);
+        document.addEventListener('mouseenter', handleMouseEnter);
+        return () => {
+            document.removeEventListener('mouseleave', handleMouseLeave);
+            document.removeEventListener('mouseenter', handleMouseEnter);
+        };
+    }, []);
+
     const handleClose = () => {
         window.api?.closePip?.();
     };
@@ -80,8 +92,6 @@ const PipPlayer: React.FC = () => {
                 background: '#000',
                 fontFamily: "'Space Grotesk', 'Inter', sans-serif",
             }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             onDoubleClick={handleClose}
         >
             {/* Webview container — fills the entire window */}
@@ -139,7 +149,7 @@ const PipPlayer: React.FC = () => {
                 justifyContent: 'space-between',
                 opacity: isHovered ? 1 : 0,
                 transition: 'opacity 0.18s ease',
-                pointerEvents: isHovered ? 'auto' : 'none',
+                pointerEvents: 'none', // Allow clicks to pass through to the video
                 zIndex: 20,
             }}>
                 {/* Top bar: drag region + title + close */}
@@ -149,6 +159,7 @@ const PipPlayer: React.FC = () => {
                     padding: '7px 10px',
                     background: 'linear-gradient(to bottom, rgba(0,0,0,0.82) 0%, transparent 100%)',
                     WebkitAppRegion: 'drag',
+                    pointerEvents: isHovered ? 'auto' : 'none',
                 } as React.CSSProperties}>
                     <div style={{
                         display: 'flex', alignItems: 'center', gap: 7,
@@ -184,6 +195,7 @@ const PipPlayer: React.FC = () => {
                     padding: '6px 10px',
                     background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 100%)',
                     WebkitAppRegion: 'no-drag',
+                    pointerEvents: isHovered ? 'auto' : 'none',
                 } as React.CSSProperties}>
                     <span style={{ color: 'rgba(148,163,184,0.7)', fontSize: 10, userSelect: 'none' }}>
                         Double-click to close

@@ -187,29 +187,17 @@ const KoPlayerPopup: React.FC = () => {
 
     const hasMedia = currentMedia && currentMedia.title;
 
-    // Pill badge style for PIP button states
-    const pipBtnStyle = (): React.CSSProperties => {
-        if (pipActive) return {
-            background: 'rgba(244,161,37,0.2)',
-            border: '1px solid rgba(244,161,37,0.5)',
-            color: '#f4a125',
-        };
-        if (pipPhase === 'detecting') return {
-            background: 'rgba(99,102,241,0.12)',
-            border: '1px solid rgba(99,102,241,0.3)',
-            color: '#a5b4fc',
-        };
-        return {
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: '#64748b',
-        };
+    // Tailwind classes for PIP button states to match Calculator fx button
+    const getPipBtnClass = () => {
+        if (pipActive) return 'bg-primary/20 text-primary';
+        if (pipPhase === 'detecting') return 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20';
+        return 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10';
     };
 
     return (
         <div
             ref={popupRef}
-            className="w-72 border shadow-2xl pointer-events-auto animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col rounded-2xl"
+            className="w-72 border shadow-2xl pointer-events-auto animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col rounded-xl"
             style={{
                 ...getPopupStyle(),
                 backgroundColor: design === 'style2'
@@ -222,7 +210,7 @@ const KoPlayerPopup: React.FC = () => {
         >
             {/* Blurred Album Art Background */}
             {hasMedia && currentMedia.albumArt && (
-                <div className="absolute inset-0 overflow-hidden rounded-2xl" style={{ zIndex: 0 }}>
+                <div className="absolute inset-0 overflow-hidden rounded-xl" style={{ zIndex: 0 }}>
                     <img
                         src={currentMedia.albumArt} alt="" className="w-full h-full object-cover"
                         style={{ filter: 'blur(40px) brightness(0.3) saturate(1.5)', transform: 'scale(1.5)' }}
@@ -238,42 +226,37 @@ const KoPlayerPopup: React.FC = () => {
                 {/* Header */}
                 <div className="flex justify-between items-center px-4 pt-3 pb-1">
                     <div className="flex items-center gap-1.5">
-                        <span className="material-symbols-outlined text-primary text-[14px]">music_note</span>
-                        <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">KoPlayer</span>
+                        <div className="relative inline-flex items-center justify-center text-[16px] text-primary" style={{ width: '1em', height: '1em' }}>
+                            <span className="material-symbols-outlined absolute left-1/2 top-1/2" style={{ fontSize: '0.85em', transform: 'translate(-60%, -60%)', opacity: 0.6 }}>movie</span>
+                            <span className="material-symbols-outlined absolute left-1/2 top-1/2" style={{ fontSize: '0.9em', transform: 'translate(-40%, -40%)' }}>music_note</span>
+                        </div>
+                        <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold ml-1">KoPlayer</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                         {/* PIP Button — always visible when media is playing */}
                         {hasMedia && (
                             <button
                                 onClick={handlePipClick}
-                                className="flex items-center gap-1 px-2 h-[20px] rounded-md text-[10px] font-bold tracking-wide transition-all hover:opacity-90 no-drag-region"
-                                style={pipBtnStyle()}
+                                className={`w-6 h-6 rounded-full flex items-center justify-center transition-all no-drag-region ${getPipBtnClass()}`}
                                 title={pipActive ? 'Close PIP' : 'Open video in Picture-in-Picture'}
                             >
                                 {pipPhase === 'detecting' ? (
-                                    <>
-                                        <div style={{
-                                            width: 8, height: 8, borderRadius: '50%',
-                                            border: '1.5px solid rgba(165,180,252,0.3)',
-                                            borderTop: '1.5px solid #a5b4fc',
-                                            animation: 'koplayer-spin 0.7s linear infinite',
-                                            flexShrink: 0,
-                                        }} />
-                                        <span>Finding…</span>
-                                    </>
+                                    <div style={{
+                                        width: 12, height: 12, borderRadius: '50%',
+                                        border: '1.5px solid rgba(165,180,252,0.3)',
+                                        borderTop: '1.5px solid #a5b4fc',
+                                        animation: 'koplayer-spin 0.7s linear infinite',
+                                    }} />
                                 ) : (
-                                    <>
-                                        <span className="material-symbols-outlined text-[11px]">
-                                            {pipActive ? 'pip_exit' : 'pip'}
-                                        </span>
-                                        <span>{pipActive ? 'Close PIP' : 'PIP'}</span>
-                                    </>
+                                    <span className="material-symbols-outlined text-[14px]">
+                                        {pipActive ? 'pip_exit' : 'pip'}
+                                    </span>
                                 )}
                             </button>
                         )}
                         <button
                             onClick={() => setIsKoPlayerOpen(false)}
-                            className="w-5 h-5 rounded-md bg-white/5 text-slate-400 hover:text-white hover:bg-red-500/20 flex items-center justify-center transition-all no-drag-region"
+                            className="w-6 h-6 rounded-full bg-white/5 text-slate-400 hover:text-white hover:bg-red-500/20 flex items-center justify-center transition-all no-drag-region"
                         >
                             <span className="material-symbols-outlined text-[14px]">close</span>
                         </button>
@@ -282,7 +265,7 @@ const KoPlayerPopup: React.FC = () => {
 
                 {/* ── Pick URL panel (multiple detected) ── */}
                 {pipPhase === 'pick' && (
-                    <div className="mx-3 mb-2 rounded-xl overflow-hidden no-drag-region"
+                    <div className="mx-3 mb-2 rounded-lg overflow-hidden no-drag-region"
                         style={{ border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.45)' }}>
                         <div className="flex justify-between items-center px-3 pt-2 pb-1">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -310,10 +293,10 @@ const KoPlayerPopup: React.FC = () => {
 
                 {/* ── Manual URL input (nothing detected) ── */}
                 {pipPhase === 'manual' && (
-                    <div className="mx-3 mb-2 rounded-xl overflow-hidden no-drag-region"
+                    <div className="mx-3 mb-2 rounded-lg overflow-hidden no-drag-region"
                         style={{ border: '1px solid rgba(255,255,255,0.07)', background: 'rgba(0,0,0,0.45)', padding: '10px 12px' }}>
                         <p className="text-[10px] text-slate-500 mb-2 leading-snug">
-                            No browser video detected. Paste a video URL or local file path:
+                            Paste a video URL:
                         </p>
                         <div className="flex gap-1.5">
                             <input
