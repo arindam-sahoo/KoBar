@@ -64,6 +64,7 @@ contextBridge.exposeInMainWorld('api', {
     takeScreenshot: (hideApp: boolean) => ipcRenderer.send('take-screenshot', hideApp),
     moveWindow: (dx: number, dy: number) => ipcRenderer.send('move-window', { dx, dy }),
     recenterWindowOnWidget: (x: number, y: number, width: number, height: number) => ipcRenderer.invoke('recenter-window-on-widget', x, y, width, height),
+    getWindowPositionSync: () => ipcRenderer.sendSync('get-window-position-sync') as [number, number],
 
     // App Launcher Native
     getFileIcon: (path: string) => ipcRenderer.invoke('get-file-icon', path),

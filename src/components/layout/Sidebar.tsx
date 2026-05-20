@@ -82,6 +82,7 @@ const Sidebar: React.FC = () => {
     const [isSidebarDragging, setIsSidebarDragging] = React.useState(false);
     const sidebarDragRef = React.useRef({ offsetX: 0, offsetY: 0, lastX: 0, lastY: 0 });
     const localDisplaysRef = React.useRef<{ primaryDisplay: any, allDisplays: any[] } | null>(null);
+    const windowPosRef = React.useRef({ x: 0, y: 0 });
     
     const dragRef = React.useRef({ startX: 0, startY: 0, dragged: false });
     const eyeButtonRef = React.useRef<HTMLButtonElement>(null);
@@ -140,6 +141,12 @@ const Sidebar: React.FC = () => {
                 localDisplaysRef.current = info;
             }).catch(err => console.warn('IPC getDisplaysInfo not ready yet:', err));
         }
+
+        // Initialize window position synchronously
+        if (window.api?.getWindowPositionSync) {
+            const [wx, wy] = window.api.getWindowPositionSync();
+            windowPosRef.current = { x: wx, y: wy };
+        }
         
         const wrapperEl = document.getElementById('kobar-sidebar-wrapper');
         const pos = useAppStore.getState().sidebarPosition;
@@ -176,8 +183,56 @@ const Sidebar: React.FC = () => {
         const handleSidebarDragMove = (e: MouseEvent) => {
             if (!isSidebarDragging) return;
             dragRef.current.dragged = true; // Mark that a real drag occurred (used by Eye click guard)
-            const newX = e.clientX - sidebarDragRef.current.offsetX;
-            const newY = e.clientY - sidebarDragRef.current.offsetY;
+            
+            let mouseX = e.clientX;
+            let mouseY = e.clientY;
+
+            // Physical cursor position
+            const physicalCursorX = windowPosRef.current.x + mouseX;
+            const physicalCursorY = windowPosRef.current.y + mouseY;
+
+            // Find if we crossed display boundary
+            if (localDisplaysRef.current && !isMac) {
+                const allDisplays = localDisplaysRef.current.allDisplays;
+                const activeDisplay = allDisplays.find(d => 
+                    physicalCursorX >= d.bounds.x && physicalCursorX < (d.bounds.x + d.bounds.width) &&
+                    physicalCursorY >= d.bounds.y && physicalCursorY < (d.bounds.y + d.bounds.height)
+                );
+
+                if (activeDisplay) {
+                    const windowWidth = 6000;
+                    const newWinX = Math.floor(activeDisplay.workArea.x + (activeDisplay.workArea.width / 2) - (windowWidth / 2));
+                    const newWinY = activeDisplay.workArea.y;
+
+                    if (newWinX !== windowPosRef.current.x || newWinY !== windowPosRef.current.y) {
+                        const dx = newWinX - windowPosRef.current.x;
+                        const dy = newWinY - windowPosRef.current.y;
+
+                        // Move the window
+                        window.api?.moveWindow(dx, dy);
+
+                        // Update local window position ref
+                        windowPosRef.current = { x: newWinX, y: newWinY };
+
+                        // Adjust last values and DOM positions
+                        sidebarDragRef.current.lastX -= dx;
+                        sidebarDragRef.current.lastY -= dy;
+                        
+                        const wrapperEl = document.getElementById('kobar-sidebar-wrapper');
+                        if (wrapperEl) {
+                            wrapperEl.style.left = `${sidebarDragRef.current.lastX}px`;
+                            wrapperEl.style.top = `${sidebarDragRef.current.lastY}px`;
+                        }
+
+                        // Adjust local event mouse coords for calculations below
+                        mouseX -= dx;
+                        mouseY -= dy;
+                    }
+                }
+            }
+
+            const newX = mouseX - sidebarDragRef.current.offsetX;
+            const newY = mouseY - sidebarDragRef.current.offsetY;
             
             // Fast DOM manipulation
             const wrapperEl = document.getElementById('kobar-sidebar-wrapper');
@@ -197,22 +252,15 @@ const Sidebar: React.FC = () => {
                 const visibleW = screenBounds?.width ?? window.innerWidth;
                 activeScreenCenter = visibleW / 2;
             } else {
-                let primaryX = 0;
-                let primaryW = 1920;
                 let allDisplays = [] as any[];
 
                 if (localDisplaysRef.current) {
-                    primaryX = localDisplaysRef.current.primaryDisplay.workArea.x;
-                    primaryW = localDisplaysRef.current.primaryDisplay.workArea.width;
                     allDisplays = localDisplaysRef.current.allDisplays;
-                } else {
-                    primaryX = screenBounds?.x ?? 0;
-                    primaryW = screenBounds?.width ?? window.innerWidth;
                 }
 
                 // Compute exact absolute coordinates in OS space
                 // Windows ghost window origin (newX=0) maps precisely to this physical OS pixel:
-                const physicalOriginX = primaryX + (primaryW / 2) - 3000;
+                const physicalOriginX = windowPosRef.current.x;
                 // Add the relative dragged sidebar center to get absolute physical pixel:
                 const physicalCurrentX = physicalOriginX + newX + (sidebarWidth / 2);
 

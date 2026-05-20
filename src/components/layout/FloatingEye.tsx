@@ -44,6 +44,8 @@ const FloatingEye: React.FC = () => {
     const eyeButtonRef = useRef<HTMLButtonElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const dragInitRef = useRef({ dragged: false, offsetX: 0, offsetY: 0 });
+    const windowPosRef = useRef({ x: 0, y: 0 });
+    const localDisplaysRef = useRef<{ primaryDisplay: any, allDisplays: any[] } | null>(null);
 
     // If teleport is triggered while already in Mini Mode, update pos to the new cursor center
     useEffect(() => {
@@ -66,14 +68,71 @@ const FloatingEye: React.FC = () => {
             offsetX: e.clientX - posRef.current.x,
             offsetY: e.clientY - posRef.current.y,
         };
+
+        // Fetch display info and window position
+        if (window.api?.getDisplaysInfo) {
+            window.api.getDisplaysInfo().then(info => {
+                localDisplaysRef.current = info;
+            }).catch(err => console.warn('IPC getDisplaysInfo not ready:', err));
+        }
+        if (window.api?.getWindowPositionSync) {
+            const [wx, wy] = window.api.getWindowPositionSync();
+            windowPosRef.current = { x: wx, y: wy };
+        }
     };
 
     useEffect(() => {
         const handleMouseMove = (e: MouseEvent) => {
             if (!isDragging) return;
 
-            const newX = e.clientX - dragInitRef.current.offsetX;
-            const newY = e.clientY - dragInitRef.current.offsetY;
+            let mouseX = e.clientX;
+            let mouseY = e.clientY;
+
+            // Physical cursor position
+            const physicalCursorX = windowPosRef.current.x + mouseX;
+            const physicalCursorY = windowPosRef.current.y + mouseY;
+
+            // Find if we crossed display boundary
+            if (localDisplaysRef.current && !isMac) {
+                const allDisplays = localDisplaysRef.current.allDisplays;
+                const activeDisplay = allDisplays.find(d => 
+                    physicalCursorX >= d.bounds.x && physicalCursorX < (d.bounds.x + d.bounds.width) &&
+                    physicalCursorY >= d.bounds.y && physicalCursorY < (d.bounds.y + d.bounds.height)
+                );
+
+                if (activeDisplay) {
+                    const windowWidth = 6000;
+                    const newWinX = Math.floor(activeDisplay.workArea.x + (activeDisplay.workArea.width / 2) - (windowWidth / 2));
+                    const newWinY = activeDisplay.workArea.y;
+
+                    if (newWinX !== windowPosRef.current.x || newWinY !== windowPosRef.current.y) {
+                        const dx = newWinX - windowPosRef.current.x;
+                        const dy = newWinY - windowPosRef.current.y;
+
+                        // Move the window
+                        window.api?.moveWindow(dx, dy);
+
+                        // Update local window position ref
+                        windowPosRef.current = { x: newWinX, y: newWinY };
+
+                        // Adjust last values and DOM positions
+                        posRef.current.x -= dx;
+                        posRef.current.y -= dy;
+                        
+                        if (containerRef.current) {
+                            containerRef.current.style.left = `${posRef.current.x}px`;
+                            containerRef.current.style.top = `${posRef.current.y}px`;
+                        }
+
+                        // Adjust local event mouse coords for calculations below
+                        mouseX -= dx;
+                        mouseY -= dy;
+                    }
+                }
+            }
+
+            const newX = mouseX - dragInitRef.current.offsetX;
+            const newY = mouseY - dragInitRef.current.offsetY;
 
             const dx = newX - posRef.current.x;
             const dy = newY - posRef.current.y;

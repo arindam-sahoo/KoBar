@@ -1493,6 +1493,11 @@ ipcMain.handle('recenter-window-on-widget', async (event, relativeX, relativeY, 
     return { x: newRelativeX, y: newRelativeY, displayBounds: activeDisplay.workArea };
 });
 
+ipcMain.on('get-window-position-sync', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    event.returnValue = win ? win.getPosition() : [0, 0];
+});
+
 ipcMain.handle('get-displays-info', () => {
     return {
         primaryDisplay: screen.getPrimaryDisplay(),
