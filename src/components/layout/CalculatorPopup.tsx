@@ -161,8 +161,9 @@ const CalculatorPopup: React.FC = () => {
             setPrevValue(inputValue);
         } else if (operator) {
             const result = performCalculation();
-            setPrevValue(result);
-            setDisplay(String(result));
+            const cleanStr = formatDisplay(result);
+            setPrevValue(parseFloat(cleanStr));
+            setDisplay(cleanStr);
         }
 
         setWaitingForOperand(true);
@@ -179,18 +180,21 @@ const CalculatorPopup: React.FC = () => {
             case '×': return prevValue * inputValue;
             case '÷': return inputValue !== 0 ? prevValue / inputValue : NaN;
             case '^': return Math.pow(prevValue, inputValue);
-            case 'mod': return prevValue % inputValue;
+            case 'mod': {
+                const res = prevValue % inputValue;
+                return Math.abs(res) < 1e-12 ? 0 : res;
+            }
             default: return inputValue;
         }
     };
 
     const handleEqual = () => {
         if (!operator) return;
-        const expression = `${prevValue} ${operator} ${display}`;
+        const expression = `${formatDisplay(prevValue!)} ${operator} ${formatDisplay(display)}`;
         const result = performCalculation();
         const resultStr = formatDisplay(result);
         setHistory(prev => [`${expression} = ${resultStr}`, ...prev].slice(0, 10));
-        setDisplay(String(result));
+        setDisplay(resultStr);
         setPrevValue(null);
         setOperator(null);
         setWaitingForOperand(false);
@@ -234,7 +238,7 @@ const CalculatorPopup: React.FC = () => {
         const { prevValue: savedPrev, operator: savedOp } = newStack.pop()!;
         setParenStack(newStack);
         
-        setDisplay(String(result));
+        setDisplay(formatDisplay(result));
         setPrevValue(savedPrev);
         setOperator(savedOp);
         setWaitingForOperand(true);
@@ -271,7 +275,7 @@ const CalculatorPopup: React.FC = () => {
             default: result = val;
         }
 
-        setDisplay(String(result));
+        setDisplay(formatDisplay(result));
         setWaitingForOperand(true);
     };
 
@@ -293,9 +297,15 @@ const CalculatorPopup: React.FC = () => {
         const num = typeof val === 'string' ? parseFloat(val) : val;
         if (isNaN(num)) return 'Error';
         if (!isFinite(num)) return '∞';
+        
         const str = typeof val === 'string' ? val : String(num);
         if (str.length > 14) {
-            return num.toExponential(8);
+            const cleanNum = parseFloat(num.toPrecision(12));
+            let formatted = String(cleanNum);
+            if (formatted.length > 14) {
+                formatted = cleanNum.toExponential(8).replace(/\.?0+e/, 'e');
+            }
+            return formatted;
         }
         return str;
     };
@@ -305,7 +315,7 @@ const CalculatorPopup: React.FC = () => {
         const val = parseFloat(display);
         switch (action) {
             case 'MC': setMemory(0); break;
-            case 'MR': setDisplay(String(memory)); setWaitingForOperand(true); break;
+            case 'MR': setDisplay(formatDisplay(memory)); setWaitingForOperand(true); break;
             case 'M+': setMemory(memory + val); break;
             case 'M-': setMemory(memory - val); break;
         }
@@ -407,9 +417,9 @@ const CalculatorPopup: React.FC = () => {
             <div className="bg-black/20 rounded-lg p-3 mb-3 text-right border" style={{ borderColor: 'var(--theme-border)' }}>
                 <div className="text-xs text-slate-500 h-4 overflow-hidden tabular-nums whitespace-nowrap">
                     {parenStack.map((item, index) => (
-                        <span key={index}>{item.prevValue !== null ? `${item.prevValue} ${item.operator} (` : '( '}</span>
+                        <span key={index}>{item.prevValue !== null ? `${formatDisplay(item.prevValue)} ${item.operator} (` : '( '}</span>
                     ))}
-                    {prevValue !== null ? `${prevValue} ${operator}` : ''}
+                    {prevValue !== null ? `${formatDisplay(prevValue)} ${operator}` : ''}
                 </div>
                 <div className="text-2xl font-bold text-slate-200 overflow-hidden truncate tabular-nums">
                     {formatDisplay(display)}
