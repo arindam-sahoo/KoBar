@@ -1095,6 +1095,14 @@ const SettingsPanel: React.FC = () => {
                 } else {
                     // Apply parsed settings directly to the store
                     useAppStore.setState(parsed);
+                    
+                    // Switch to mini mode and teleport to center as if it's a fresh start
+                    const state = useAppStore.getState();
+                    const visibleHeight = state.screenBounds?.height ?? 800;
+                    state.setMiniMode(true, { 
+                        x: state.isMac ? Math.floor(window.innerWidth / 2) : 3000, 
+                        y: Math.floor(visibleHeight / 2) 
+                    });
                 }
                 
                 window.api?.sendNotification?.('Import Complete', `Successfully imported ${type}.`);
@@ -1952,14 +1960,14 @@ const SettingsPanel: React.FC = () => {
                 )}
 
                 {/* Export Data & Settings Section */}
-                <Accordion title={(t as any)('exportDataSettings') !== 'exportDataSettings' ? (t as any)('exportDataSettings') : 'Export Data and Settings'} icon="database" defaultOpen={false}>
+                <Accordion title={t('exportDataSettings') as string || 'Export Data and Settings'} icon="database" defaultOpen={false}>
                     <div className="flex flex-col gap-4 px-1">
                         {/* Export Settings */}
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-sm text-slate-300 font-medium">Export Settings</span>
-                                    <span className="text-xs text-slate-500">Backup your layout, themes, and feature toggles.</span>
+                                    <span className="text-sm text-slate-300 font-medium">{t('exportSettings') as string || 'Export Settings'}</span>
+                                    <span className="text-xs text-slate-500">{t('exportSettingsDesc') as string || 'Backup your layout, themes, and feature toggles.'}</span>
                                 </div>
                             </div>
                             <div className="flex gap-2 mt-1">
@@ -1968,14 +1976,14 @@ const SettingsPanel: React.FC = () => {
                                     className="flex-1 py-2 rounded-lg bg-black/20 border border-white/5 hover:bg-white/5 hover:border-primary/50 text-slate-300 hover:text-primary text-xs font-medium flex items-center justify-center gap-2 transition-all"
                                 >
                                     <span className="material-symbols-outlined text-[16px]">download</span>
-                                    Download JSON
+                                    {t('downloadJson') as string || 'Download JSON'}
                                 </button>
                                 <button
                                     onClick={() => handleExport('settings', 'email')}
                                     className="flex-1 py-2 rounded-lg bg-black/20 border border-white/5 hover:bg-white/5 hover:border-primary/50 text-slate-300 hover:text-primary text-xs font-medium flex items-center justify-center gap-2 transition-all"
                                 >
                                     <span className="material-symbols-outlined text-[16px]">mail</span>
-                                    Send to Email
+                                    {t('sendToEmail') as string || 'Send to Email'}
                                 </button>
                                 <input type="file" accept=".json" className="hidden" ref={importSettingsRef} onChange={(e) => handleImport('settings', e)} />
                                 <button
@@ -1983,7 +1991,7 @@ const SettingsPanel: React.FC = () => {
                                     className="flex-1 py-2 rounded-lg bg-black/20 border border-white/5 hover:bg-white/5 hover:border-primary/50 text-slate-300 hover:text-primary text-xs font-medium flex items-center justify-center gap-2 transition-all"
                                 >
                                     <span className="material-symbols-outlined text-[16px]">upload</span>
-                                    Import
+                                    {t('import') as string || 'Import'}
                                 </button>
                             </div>
                         </div>
@@ -1994,8 +2002,8 @@ const SettingsPanel: React.FC = () => {
                         <div className="flex flex-col gap-2">
                             <div className="flex items-center justify-between">
                                 <div className="flex flex-col gap-0.5">
-                                    <span className="text-sm text-slate-300 font-medium">Export Data</span>
-                                    <span className="text-xs text-slate-500">Backup your notes, calendar events, to-dos, and snippets.</span>
+                                    <span className="text-sm text-slate-300 font-medium">{t('exportData') as string || 'Export Data'}</span>
+                                    <span className="text-xs text-slate-500">{t('exportDataDesc') as string || 'Backup your notes, calendar events, to-dos, and snippets.'}</span>
                                 </div>
                             </div>
                             <div className="flex gap-2 mt-1">
@@ -2004,14 +2012,14 @@ const SettingsPanel: React.FC = () => {
                                     className="flex-1 py-2 rounded-lg bg-black/20 border border-white/5 hover:bg-white/5 hover:border-primary/50 text-slate-300 hover:text-primary text-xs font-medium flex items-center justify-center gap-2 transition-all"
                                 >
                                     <span className="material-symbols-outlined text-[16px]">download</span>
-                                    Download JSON
+                                    {t('downloadJson') as string || 'Download JSON'}
                                 </button>
                                 <button
                                     onClick={() => handleExport('data', 'email')}
                                     className="flex-1 py-2 rounded-lg bg-black/20 border border-white/5 hover:bg-white/5 hover:border-primary/50 text-slate-300 hover:text-primary text-xs font-medium flex items-center justify-center gap-2 transition-all"
                                 >
                                     <span className="material-symbols-outlined text-[16px]">mail</span>
-                                    Send to Email
+                                    {t('sendToEmail') as string || 'Send to Email'}
                                 </button>
                                 <input type="file" accept=".json" className="hidden" ref={importDataRef} onChange={(e) => handleImport('data', e)} />
                                 <button
@@ -2019,7 +2027,7 @@ const SettingsPanel: React.FC = () => {
                                     className="flex-1 py-2 rounded-lg bg-black/20 border border-white/5 hover:bg-white/5 hover:border-primary/50 text-slate-300 hover:text-primary text-xs font-medium flex items-center justify-center gap-2 transition-all"
                                 >
                                     <span className="material-symbols-outlined text-[16px]">upload</span>
-                                    Import
+                                    {t('import') as string || 'Import'}
                                 </button>
                             </div>
                         </div>
