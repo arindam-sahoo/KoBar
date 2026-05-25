@@ -27,6 +27,8 @@ const ShortcutsPopup: React.FC = () => {
     const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
     const [dragEnabled, setDragEnabled] = useState(false);
 
+    const [failedImageIds, setFailedImageIds] = useState<Record<string, boolean>>({});
+
     const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const prevPositions = useRef<Record<string, { left: number; top: number }>>({});
 
@@ -261,12 +263,13 @@ const ShortcutsPopup: React.FC = () => {
 
             try {
                 const parsedUrl = new URL(filePath);
-                if (!name) {
+                if (!name || name.trim() === '') {
                     name = parsedUrl.hostname.replace('www.', '');
+                    if (!name) name = parsedUrl.pathname.split('/').filter(Boolean).pop() || filePath;
                 }
                 iconDataUrl = `https://www.google.com/s2/favicons?sz=64&domain=${parsedUrl.hostname}`;
             } catch (err) {
-                if (!name) name = filePath;
+                if (!name || name.trim() === '') name = filePath;
             }
         }
 
@@ -300,8 +303,19 @@ const ShortcutsPopup: React.FC = () => {
             >
                 {pinnedApps.slice(0, maxShortcuts).map((app, index) => {
                     const isWebUrlIcon = app.icon && (app.icon.startsWith('http://') || app.icon.startsWith('https://'));
-                    const isGenericOrEmpty = !isWebUrlIcon && (!app.icon || app.icon === '' || app.icon.length < 3000);
-                    const appInitials = app.name ? app.name.substring(0, 2).toUpperCase() : '??';
+                    const isGenericOrEmpty = failedImageIds[app.id] || (!isWebUrlIcon && (!app.icon || app.icon === '' || app.icon.length < 3000));
+                    let finalName = app.name;
+                    if (!finalName || finalName.trim() === '') {
+                        try {
+                            const url = new URL(app.path);
+                            finalName = url.hostname.replace('www.', '') || url.pathname.split('/').filter(Boolean).pop() || app.path;
+                        } catch {
+                            finalName = app.path || '??';
+                        }
+                    }
+                    let cleanName = finalName.replace(/[^a-zA-Z0-9]/g, '');
+                    if (!cleanName) cleanName = finalName;
+                    const appInitials = cleanName.substring(0, 2).toUpperCase();
 
                     return (
                         <div
@@ -342,7 +356,13 @@ const ShortcutsPopup: React.FC = () => {
                                 {isGenericOrEmpty ? (
                                     <div className="w-full h-full flex items-center justify-center font-bold text-xs text-primary/70">{appInitials}</div>
                                 ) : (
-                                    <img src={app.icon} className="w-full h-full object-contain p-3" alt={app.name} draggable={false} />
+                                    <img 
+                                        src={app.icon} 
+                                        className="w-full h-full object-contain p-3" 
+                                        alt={app.name} 
+                                        draggable={false} 
+                                        onError={() => setFailedImageIds(prev => ({ ...prev, [app.id]: true }))}
+                                    />
                                 )}
                             </TooltipButton>
 

@@ -632,12 +632,13 @@ const Sidebar: React.FC = () => {
 
                                                     try {
                                                         const parsedUrl = new URL(filePath);
-                                                        if (!name) {
+                                                        if (!name || name.trim() === '') {
                                                             name = parsedUrl.hostname.replace('www.', '');
+                                                            if (!name) name = parsedUrl.pathname.split('/').filter(Boolean).pop() || filePath;
                                                         }
                                                         iconDataUrl = `https://www.google.com/s2/favicons?sz=64&domain=${parsedUrl.hostname}`;
                                                     } catch (err) {
-                                                        if (!name) name = filePath;
+                                                        if (!name || name.trim() === '') name = filePath;
                                                     }
                                                 }
 

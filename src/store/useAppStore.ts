@@ -490,8 +490,7 @@ export const useAppStore = create<AppState>()(
             // App Launcher State
             pinnedApps: [],
             pinApp: (app) => set((state) => {
-                // Max 5 apps
-                if (state.pinnedApps.length >= 5) return state;
+                if (state.pinnedApps.length >= state.maxShortcuts) return state;
                 return { pinnedApps: [...state.pinnedApps, app] };
             }),
             unpinApp: (id) => set((state) => ({
