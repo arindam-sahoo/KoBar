@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../../store/useAppStore';
+import { useClipboardStore } from '../../store/useClipboardStore';
 
 const POPULAR_CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'INR', 'CAD', 'AUD', 'CHF', 'CNY'];
 
@@ -89,6 +90,7 @@ let sessionDefaultCurrency: string | null = null;
 
 const CalculatorPopup: React.FC = () => {
     const t = useAppStore(state => state.t);
+    const forceAddClipboardItem = useClipboardStore(state => state.forceAddClipboardItem);
     const isSmartPositioning = useAppStore(state => state.isPopupSmartPositioning);
     const edgePosition = useAppStore(state => state.edgePosition);
     const calculatorAnchorRect = useAppStore(state => state.calculatorAnchorRect);
@@ -803,6 +805,8 @@ const CalculatorPopup: React.FC = () => {
                                     onClick={() => {
                                         const cleanVal = convertedAmountStr.replace(/[^\d.]/g, '');
                                         navigator.clipboard.writeText(cleanVal);
+                                        window.api?.writeToClipboard?.({ type: 'text', content: cleanVal });
+                                        forceAddClipboardItem?.('text', cleanVal);
                                         setCopyFeedback(true);
                                         setTimeout(() => setCopyFeedback(false), 1500);
                                     }}
@@ -856,6 +860,8 @@ const CalculatorPopup: React.FC = () => {
                             onClick={() => {
                                 const cleanVal = convertedAmountStr.replace(/[^\d.]/g, '');
                                 navigator.clipboard.writeText(cleanVal);
+                                window.api?.writeToClipboard?.({ type: 'text', content: cleanVal });
+                                forceAddClipboardItem?.('text', cleanVal);
                                 setCopyFeedback(true);
                                 setTimeout(() => setCopyFeedback(false), 1500);
                             }}
