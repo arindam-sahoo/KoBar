@@ -85,6 +85,8 @@ const CURRENCY_DETAILS: Record<string, { name: string; flag: string }> = {
     TWD: { name: 'New Taiwan Dollar', flag: '🇹🇼' }
 };
 
+let sessionDefaultCurrency: string | null = null;
+
 const CalculatorPopup: React.FC = () => {
     const t = useAppStore(state => state.t);
     const isSmartPositioning = useAppStore(state => state.isPopupSmartPositioning);
@@ -113,18 +115,7 @@ const CalculatorPopup: React.FC = () => {
     const [ratesError, setRatesError] = useState<string | null>(null);
     const [fromCurrency, setFromCurrency] = useState('USD');
     const [toCurrency, setToCurrency] = useState(() => {
-        const cachedStr = localStorage.getItem('kobar_default_to_currency');
-        if (cachedStr) {
-            try {
-                const parsed = JSON.parse(cachedStr);
-                if (parsed && typeof parsed === 'object' && parsed.currency) {
-                    return parsed.currency;
-                }
-            } catch (e) {
-                return cachedStr; // Handle raw string cache from old build
-            }
-        }
-        return 'EUR';
+        return sessionDefaultCurrency || 'EUR';
     });
     const [currencyAmount, setCurrencyAmount] = useState('1');
     const [searchQuery, setSearchQuery] = useState('');
@@ -191,21 +182,9 @@ const CalculatorPopup: React.FC = () => {
 
     useEffect(() => {
         const detectLocalCurrency = async () => {
-            const cachedStr = localStorage.getItem('kobar_default_to_currency');
-            if (cachedStr) {
-                try {
-                    const parsed = JSON.parse(cachedStr);
-                    if (parsed && typeof parsed === 'object') {
-                        const { currency, timestamp } = parsed;
-                        // Expire cache after 1 hour to detect location/VPN changes
-                        if (currency && CURRENCY_DETAILS[currency] && timestamp && (Date.now() - timestamp < 3600000)) {
-                            setToCurrency(currency);
-                            return;
-                        }
-                    }
-                } catch (e) {
-                    // Raw string format or invalid, proceed to fetch
-                }
+            if (sessionDefaultCurrency) {
+                setToCurrency(sessionDefaultCurrency);
+                return;
             }
 
             try {
@@ -214,10 +193,7 @@ const CalculatorPopup: React.FC = () => {
                     const data = await res.json();
                     if (data && data.currency && CURRENCY_DETAILS[data.currency]) {
                         setToCurrency(data.currency);
-                        localStorage.setItem('kobar_default_to_currency', JSON.stringify({
-                            currency: data.currency,
-                            timestamp: Date.now()
-                        }));
+                        sessionDefaultCurrency = data.currency;
                         return;
                     }
                 }
@@ -267,10 +243,7 @@ const CalculatorPopup: React.FC = () => {
                 
                 if (matchedCurrency && CURRENCY_DETAILS[matchedCurrency]) {
                     setToCurrency(matchedCurrency);
-                    localStorage.setItem('kobar_default_to_currency', JSON.stringify({
-                        currency: matchedCurrency,
-                        timestamp: Date.now()
-                    }));
+                    sessionDefaultCurrency = matchedCurrency;
                     return;
                 }
             } catch (e) {}
