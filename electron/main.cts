@@ -100,14 +100,10 @@ function createWindow() {
     const displays = screen.getAllDisplays();
     const primary = screen.getPrimaryDisplay();
 
-    // The visual 80px Sidebar is horizontally centered within the 3400px container.
-    // 3400/2 = 1700. The bar is from 1660 to 1740.
-    // To dock the bar on the right edge by default: windowX + 3040 = rightEdge
-    const defaultX = primary.workArea.x + primary.workArea.width - 3040;
-    const defaultY = primary.workArea.y;
-
-    let x = savedState?.x ?? defaultX;
-    let y = savedState?.y ?? defaultY;
+    // Default position is centered on the primary display for fresh launches.
+    const centerPos = calculatePrimaryCenterPosition();
+    let x = savedState?.x ?? centerPos.x;
+    let y = savedState?.y ?? centerPos.y;
 
     // Boundary check to ensure the invisible "ghost" 3400px window hasn't pushed the KoBar visual bar 
     // entirely off-screen on any resolution changes or active display disconnects.
@@ -199,22 +195,21 @@ function createWindow() {
             const loginSettings = app.getLoginItemSettings();
             const isHidden = process.argv.includes('--hidden') || loginSettings.wasOpenedAtLogin;
 
-            // Teleport to center on fresh boot and force Mini Mode (pass showWindow flag based on args)
-            teleportToPrimaryCenter(!isHidden);
-
-            if (!isHidden) {
-                mainWindow.show();
+            if (!savedState) {
+                // Fresh boot: Teleport to center and force Mini Mode
+                teleportToPrimaryCenter(!isHidden);
+            } else {
+                // Restore saved state position
+                if (!isHidden) {
+                    mainWindow.show();
+                }
+                mainWindow.setAlwaysOnTop(true, isMac ? 'floating' : 'screen-saver', 1);
+                if (isMac) {
+                    mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+                    mainWindow.setAlwaysOnTop(true, 'floating', 1);
+                }
+                handleWindowMove(true);
             }
-            mainWindow.setAlwaysOnTop(true, isMac ? 'floating' : 'screen-saver', 1);
-            if (isMac) {
-                // Re-enforce workspace visibility after window is fully loaded
-                mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-                mainWindow.setAlwaysOnTop(true, 'floating', 1);
-            }
-            handleWindowMove(true);
-
-            // Dispatch forcing Mini Mode right after load
-            mainWindow.webContents.send('force-center-mini-mode');
         }
     });
 
