@@ -237,6 +237,7 @@ const SettingsPanel: React.FC = () => {
     const [availableExtensions, setAvailableExtensions] = useState<any[]>([]);
     const [extensionsSubTab, setExtensionsSubTab] = useState<'installed' | 'marketplace'>('installed');
     const [extsLoading, setExtsLoading] = useState(false);
+    const [installMessage, setInstallMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     const triggerExtensionReload = useAppStore(state => state.triggerExtensionReload);
 
     const loadExtensionsData = async () => {
@@ -284,6 +285,27 @@ const SettingsPanel: React.FC = () => {
             await window.api.uninstallExtension(id);
             triggerExtensionReload();
             await loadExtensionsData();
+        }
+    };
+
+    const handleInstallExtensionFromFile = async () => {
+        if (window.api?.installExtensionFromFile) {
+            setExtsLoading(true);
+            setInstallMessage(null);
+            try {
+                const res = await window.api.installExtensionFromFile();
+                if (res.success) {
+                    setInstallMessage({ type: 'success', text: 'Extension installed successfully!' });
+                    triggerExtensionReload();
+                    await loadExtensionsData();
+                } else if (res.reason !== 'Canceled by user') {
+                    setInstallMessage({ type: 'error', text: `Failed to install: ${res.reason || 'Unknown error'}` });
+                }
+            } catch (e: any) {
+                setInstallMessage({ type: 'error', text: `Error during installation: ${e.message || e}` });
+            } finally {
+                setExtsLoading(false);
+            }
         }
     };
     const [appVersion, setAppVersion] = useState('');
@@ -1469,21 +1491,51 @@ const SettingsPanel: React.FC = () => {
                     <h3 className="text-sm uppercase tracking-wider text-slate-500 font-semibold mb-4 px-2">Extensions</h3>
                     <Accordion title="Extensions Manager" icon="extension" defaultOpen={true}>
                         <div className="flex flex-col gap-6 no-drag-region">
-                            {/* Sub-tabs */}
-                            <div className="flex bg-black/20 p-1 rounded-xl border border-white/5">
+                            {/* Sub-tabs & Action button */}
+                            <div className="flex items-center gap-3">
+                                <div className="flex bg-black/20 p-1 rounded-xl border border-white/5 flex-1">
+                                    <button
+                                        onClick={() => setExtensionsSubTab('installed')}
+                                        className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${extensionsSubTab === 'installed' ? 'bg-primary text-slate-900 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+                                    >
+                                        Installed
+                                    </button>
+                                    <button
+                                        onClick={() => setExtensionsSubTab('marketplace')}
+                                        className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${extensionsSubTab === 'marketplace' ? 'bg-primary text-slate-900 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+                                    >
+                                        Marketplace
+                                    </button>
+                                </div>
                                 <button
-                                    onClick={() => setExtensionsSubTab('installed')}
-                                    className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${extensionsSubTab === 'installed' ? 'bg-primary text-slate-900 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
+                                    onClick={handleInstallExtensionFromFile}
+                                    className="px-3 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/50 text-primary text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all shrink-0"
+                                    title="Install Extension from local .zip file"
                                 >
-                                    Installed
-                                </button>
-                                <button
-                                    onClick={() => setExtensionsSubTab('marketplace')}
-                                    className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${extensionsSubTab === 'marketplace' ? 'bg-primary text-slate-900 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
-                                >
-                                    Marketplace
+                                    <span className="material-symbols-outlined text-[16px]">folder_zip</span>
+                                    Install Zip
                                 </button>
                             </div>
+
+                            {/* Installation feedback message */}
+                            {installMessage && (
+                                <div className={`px-4 py-3 rounded-xl border text-xs flex items-center gap-2 animate-in fade-in duration-200 ${
+                                    installMessage.type === 'success' 
+                                        ? 'bg-green-500/10 border-green-500/30 text-green-400' 
+                                        : 'bg-red-500/10 border-red-500/30 text-red-400'
+                                }`}>
+                                    <span className="material-symbols-outlined text-[16px]">
+                                        {installMessage.type === 'success' ? 'check_circle' : 'error'}
+                                    </span>
+                                    <span className="flex-1">{installMessage.text}</span>
+                                    <button 
+                                        onClick={() => setInstallMessage(null)} 
+                                        className="text-slate-400 hover:text-slate-200 p-0.5 rounded transition-all hover:bg-white/5"
+                                    >
+                                        <span className="material-symbols-outlined text-[14px]">close</span>
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Extensions Loading Indicator */}
                             {extsLoading && (
