@@ -234,9 +234,11 @@ const SettingsPanel: React.FC = () => {
 
     // Dynamic Extensions State & Handlers
     const [installedExtensions, setInstalledExtensions] = useState<any[]>([]);
-    const [extensionsSubTab, setExtensionsSubTab] = useState<'installed' | 'marketplace'>('installed');
+    const extensionsSubTab = useAppStore(state => state.extensionsSubTab);
+    const setExtensionsSubTab = useAppStore(state => state.setExtensionsSubTab);
     const [extsLoading, setExtsLoading] = useState(false);
     const [installMessage, setInstallMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [isDragOver, setIsDragOver] = useState(false);
     const triggerExtensionReload = useAppStore(state => state.triggerExtensionReload);
 
     const loadExtensionsData = async () => {
@@ -294,6 +296,46 @@ const SettingsPanel: React.FC = () => {
             } finally {
                 setExtsLoading(false);
             }
+        }
+    };
+
+    const handleDropExtension = async (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragOver(false);
+
+        const files = e.dataTransfer?.files;
+        if (!files || files.length === 0) return;
+
+        const file = files[0];
+        if (!file.name.toLowerCase().endsWith('.zip')) {
+            setInstallMessage({ type: 'error', text: 'Only .zip files are supported.' });
+            return;
+        }
+
+        // Use Electron's webUtils to get the native file path
+        const filePath = window.api?.getFilePath?.(file);
+        if (!filePath || !window.api?.installExtensionFromPath) {
+            setInstallMessage({ type: 'error', text: 'Drag & drop is not supported in this environment.' });
+            return;
+        }
+
+        setExtsLoading(true);
+        setInstallMessage(null);
+        try {
+            const res = await window.api.installExtensionFromPath(filePath);
+            if (res.success) {
+                setInstallMessage({ type: 'success', text: 'Extension installed successfully!' });
+                triggerExtensionReload();
+                await loadExtensionsData();
+            } else {
+                setInstallMessage({ type: 'error', text: `Failed to install: ${res.reason || 'Unknown error'}` });
+            }
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : String(err);
+            setInstallMessage({ type: 'error', text: `Error during installation: ${message}` });
+        } finally {
+            setExtsLoading(false);
         }
     };
     const [appVersion, setAppVersion] = useState('');
@@ -1584,14 +1626,30 @@ const SettingsPanel: React.FC = () => {
                                 <div className="space-y-4">
                                     <div 
                                         onClick={handleInstallExtensionFromFile}
-                                        className="p-8 border border-dashed border-[#2a241c] hover:border-primary/50 bg-black/20 hover:bg-black/30 rounded-xl text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group"
+                                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                                        onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragOver(true); }}
+                                        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragOver(false); }}
+                                        onDrop={handleDropExtension}
+                                        className={`p-8 border border-dashed rounded-xl text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group ${
+                                            isDragOver 
+                                                ? 'border-primary bg-primary/10 scale-[1.02]' 
+                                                : 'border-[#2a241c] hover:border-primary/50 bg-black/20 hover:bg-black/30'
+                                        }`}
                                     >
-                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                            <span className="material-symbols-outlined text-primary text-[28px]">folder_zip</span>
+                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${
+                                            isDragOver ? 'bg-primary/20 scale-110' : 'bg-primary/10 group-hover:scale-110'
+                                        }`}>
+                                            <span className="material-symbols-outlined text-primary text-[28px]">
+                                                {isDragOver ? 'download' : 'folder_zip'}
+                                            </span>
                                         </div>
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-sm font-semibold text-slate-200">Click to Select Extension ZIP</span>
-                                            <span className="text-xs text-slate-400">Select an independently packaged KoBar extension (.zip) from your computer</span>
+                                            <span className="text-sm font-semibold text-slate-200">
+                                                {isDragOver ? 'Drop ZIP to Install' : 'Click or Drag & Drop Extension ZIP'}
+                                            </span>
+                                            <span className="text-xs text-slate-400">
+                                                {isDragOver ? 'Release to start installation' : 'Select or drop a KoBar extension (.zip) file'}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
