@@ -234,7 +234,6 @@ const SettingsPanel: React.FC = () => {
 
     // Dynamic Extensions State & Handlers
     const [installedExtensions, setInstalledExtensions] = useState<any[]>([]);
-    const [availableExtensions, setAvailableExtensions] = useState<any[]>([]);
     const [extensionsSubTab, setExtensionsSubTab] = useState<'installed' | 'marketplace'>('installed');
     const [extsLoading, setExtsLoading] = useState(false);
     const [installMessage, setInstallMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -246,10 +245,6 @@ const SettingsPanel: React.FC = () => {
             if (window.api?.getInstalledExtensions) {
                 const installed = await window.api.getInstalledExtensions();
                 setInstalledExtensions(installed);
-            }
-            if (window.api?.getAvailableExtensions) {
-                const available = await window.api.getAvailableExtensions();
-                setAvailableExtensions(available);
             }
         } catch (e) {
             console.error('Failed to load extensions data:', e);
@@ -270,14 +265,7 @@ const SettingsPanel: React.FC = () => {
         }
     };
 
-    const handleInstallExtension = async (id: string) => {
-        if (window.api?.installExtension) {
-            setExtsLoading(true);
-            await window.api.installExtension(id);
-            triggerExtensionReload();
-            await loadExtensionsData();
-        }
-    };
+
 
     const handleUninstallExtension = async (id: string) => {
         if (window.api?.uninstallExtension) {
@@ -1504,16 +1492,16 @@ const SettingsPanel: React.FC = () => {
                                         onClick={() => setExtensionsSubTab('marketplace')}
                                         className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${extensionsSubTab === 'marketplace' ? 'bg-primary text-slate-900 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
                                     >
-                                        Marketplace
+                                        Install Extensions
                                     </button>
                                 </div>
                                 <button
-                                    onClick={handleInstallExtensionFromFile}
+                                    onClick={() => window.api?.openExternal('https://github.com/eedali/KoBar/wiki/Extensions')}
                                     className="px-3 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/50 text-primary text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all shrink-0"
-                                    title="Install Extension from local .zip file"
+                                    title="Browse official extensions on GitHub"
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">folder_zip</span>
-                                    Install Zip
+                                    <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                                    Visit Marketplace
                                 </button>
                             </div>
 
@@ -1549,7 +1537,7 @@ const SettingsPanel: React.FC = () => {
                                 <div className="space-y-4">
                                     {installedExtensions.length === 0 ? (
                                         <div className="p-6 border border-dashed border-white/10 rounded-xl text-center text-slate-500 text-sm">
-                                            No extensions installed yet. Visit the Marketplace to explore!
+                                            No extensions installed yet. Click "Install Extensions" to add one!
                                         </div>
                                     ) : (
                                         installedExtensions.map((ext) => (
@@ -1591,44 +1579,21 @@ const SettingsPanel: React.FC = () => {
                                 </div>
                             )}
 
-                            {/* Marketplace Sub-tab */}
+                            {/* Install Extensions Sub-tab */}
                             {!extsLoading && extensionsSubTab === 'marketplace' && (
                                 <div className="space-y-4">
-                                    {availableExtensions.map((ext) => {
-                                        const isInstalled = installedExtensions.some(i => i.id === ext.id);
-                                        return (
-                                            <div key={ext.id} className="flex items-center justify-between p-4 rounded-xl border border-[#2a241c] bg-black/20 hover:border-primary/30 transition-all">
-                                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                                                        <span className="material-symbols-outlined text-primary text-[20px]">{ext.icon || 'extension'}</span>
-                                                    </div>
-                                                    <div className="flex flex-col min-w-0">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-sm font-semibold text-slate-200 truncate">{ext.name}</span>
-                                                            <span className="text-[10px] font-mono text-slate-500 shrink-0">v{ext.version}</span>
-                                                        </div>
-                                                        <span className="text-xs text-slate-400 leading-normal truncate max-w-xs">{ext.description}</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="shrink-0">
-                                                    {isInstalled ? (
-                                                        <span className="text-xs font-medium text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-lg">
-                                                            Installed
-                                                        </span>
-                                                    ) : (
-                                                        <button
-                                                            onClick={() => handleInstallExtension(ext.id)}
-                                                            className="px-3 py-1.5 bg-primary/20 text-primary border border-primary/50 hover:bg-primary/30 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all"
-                                                        >
-                                                            <span className="material-symbols-outlined text-[14px]">download</span>
-                                                            Download
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                    <div 
+                                        onClick={handleInstallExtensionFromFile}
+                                        className="p-8 border border-dashed border-[#2a241c] hover:border-primary/50 bg-black/20 hover:bg-black/30 rounded-xl text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-3 group"
+                                    >
+                                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <span className="material-symbols-outlined text-primary text-[28px]">folder_zip</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-sm font-semibold text-slate-200">Click to Select Extension ZIP</span>
+                                            <span className="text-xs text-slate-400">Select an independently packaged KoBar extension (.zip) from your computer</span>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>

@@ -2089,6 +2089,10 @@ ipcMain.on('media-command', (_event, command: string) => {
     }
 });
 
+ipcMain.on('open-external', (_event, url: string) => {
+    shell.openExternal(url);
+});
+
 // ─── Dynamic Extensions IPC Handlers ────────────────────────────────
 const extensionsDir = path.join(app.getPath('userData'), 'extensions');
 const extensionsConfigPath = path.join(app.getPath('userData'), 'extensions-config.json');
